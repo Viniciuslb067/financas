@@ -14,7 +14,14 @@ import { useNavigation } from "@react-navigation/native";
 
 import styles from "./styles";
 
+import api from "../../services/api";
+
 export default function Register() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState(0);
+  const [password2, setPassword2] = useState(0);
+
   const [offset] = useState(new Animated.ValueXY({ x: 0, y: 95 }));
   const [opacity] = useState(new Animated.Value(0));
   const [logo] = useState(new Animated.ValueXY({ x: 130, y: 155 }));
@@ -79,6 +86,29 @@ export default function Register() {
     ]).start();
   }
 
+  function navigateToLogin() {
+    navigation.navigate("Login");
+  }
+
+  const handleSubmit = () => {
+    const data = {
+      name: name,
+      email: email,
+      password: password,
+      password2: password2,
+    };
+
+    api.post("/auth/register", data).then((res) => {
+      console.log(res.data)
+      if (res.data.status === 2) {
+        alert("" + res.data.error);
+      } else {
+        alert("" + res.data.success);
+        navigateToLogin();
+      }
+    }).catch(error => console.log(error));
+  }
+
   return (
     <KeyboardAvoidingView style={styles.background}>
       <View style={styles.containerLogo}>
@@ -98,28 +128,32 @@ export default function Register() {
           style={styles.input}
           placeholder="Nome"
           autoCorrect={false}
+          onChangeText={text => setName(text)}
         />
 
         <TextInput
           style={styles.input}
           placeholder="Email"
           autoCorrect={false}
+          onChangeText={text => setEmail(text)}
         />
 
         <TextInput
           style={styles.input}
           placeholder="Senha"
           autoCorrect={false}
+          onChangeText={text => setPassword(text)}
         />
 
         <TextInput
           style={styles.input}
           placeholder="Confirmar senha"
           autoCorrect={false}
+          onChangeText={text => setPassword2(text)}
         />
 
         <TouchableOpacity style={styles.btnSubmit}>
-          <Text style={styles.submitText}>Criar</Text>
+          <Text onPress={handleSubmit} style={styles.submitText}>Criar</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.btnRegister}>
