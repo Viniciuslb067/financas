@@ -7,29 +7,58 @@ import {
   TouchableOpacity,
   Image,
   Animated,
-  Keyboard
+  Keyboard,
 } from "react-native";
 
-import Icon from "react-native-vector-icons/FontAwesome5"
+import Icon from "react-native-vector-icons/FontAwesome5";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useNavigation } from "@react-navigation/native";
 
 import styles from "./styles";
 
+import api from "../../services/api";
+
 export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   const [offset] = useState(new Animated.ValueXY({ x: 0, y: 95 }));
   const [opacity] = useState(new Animated.Value(0));
   const [logo] = useState(new Animated.ValueXY({ x: 130, y: 155 }));
-  const navigation = useNavigation()
-  
+  const navigation = useNavigation();
+
   function navigationRegister() {
-    navigation.navigate("Register")
+    navigation.navigate("Register");
+  }
+
+  async function handleSubmit() {
+    const res = await api.post("/auth/authenticate", { email, password });
+
+    const { token } = res.data;
+
+    if (res.data.status === 1) {
+      await AsyncStorage.multiSet([
+        ["&user-token", token],
+      ]);
+
+      navigateToDashboard();
+    } else if (res.data.status === 2) {
+      alert("" + res.data.error);
+    }
   }
 
   useEffect(() => {
-    keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', keyboardDidShow);
-    keyboardDidHideListener = Keyboard.addListener('keyboardHideShow', keyboardDidHide);
-   
+    keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      keyboardDidShow
+    );
+    keyboardDidHideListener = Keyboard.addListener(
+      "keyboardHideShow",
+      keyboardDidHide
+    );
+
     Animated.parallel([
       Animated.spring(offset.y, {
         toValue: 0,
@@ -78,7 +107,7 @@ export default function Login() {
   return (
     <KeyboardAvoidingView style={styles.background}>
       <View style={styles.containerLogo}>
-        <Icon name="house-user" size={150}/>
+        <Icon name="house-user" size={100} />
       </View>
 
       <Animated.View
@@ -94,15 +123,18 @@ export default function Login() {
           style={styles.input}
           placeholder="Email"
           autoCorrect={false}
+          onChangeText={(text) => setEmail(text)}
         />
 
         <TextInput
+          secureTextEntry
           style={styles.input}
           placeholder="Senha"
           autoCorrect={false}
+          onChangeText={(text) => setPassword(text)}
         />
 
-        <TouchableOpacity style={styles.btnSubmit}>
+        <TouchableOpacity onPress={handleSubmit} style={styles.btnSubmit}>
           <Text style={styles.submitText}>Entrar</Text>
         </TouchableOpacity>
 

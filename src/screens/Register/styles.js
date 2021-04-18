@@ -22,7 +22,7 @@ export default StyleSheet.create({
     backgroundColor: "#f5f5f5f5",
     width: "90%",
     marginBottom: 15,
-    color: "#222",
+    color: "black",
     fontSize: 17,
     borderRadius: 7,
     padding: 10,

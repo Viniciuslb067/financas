@@ -19,8 +19,8 @@ import api from "../../services/api";
 export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(0);
-  const [password2, setPassword2] = useState(0);
+  const [password, setPassword] = useState("");
+  const [password2, setPassword2] = useState("");
 
   const [offset] = useState(new Animated.ValueXY({ x: 0, y: 95 }));
   const [opacity] = useState(new Animated.Value(0));
@@ -90,29 +90,30 @@ export default function Register() {
     navigation.navigate("Login");
   }
 
+
   const handleSubmit = () => {
     const data = {
       name: name,
       email: email,
       password: password,
-      password2: password2,
-    };
+      password2: password2
+    }
 
-    api.post("/auth/register", data).then((res) => {
-      console.log(res.data)
-      if (res.data.status === 2) {
-        alert("" + res.data.error);
-      } else {
-        alert("" + res.data.success);
-        navigateToLogin();
-      }
-    }).catch(error => console.log(error));
+    api.post('/auth/register', data)
+      .then(res => {
+        if(res.data.status === 2) {
+          alert('' + res.data.error)
+        } else {
+          alert('' + res.data.success)
+          navigateToLogin()
+        }
+      })
   }
 
   return (
     <KeyboardAvoidingView style={styles.background}>
       <View style={styles.containerLogo}>
-        <Icon name="user-plus" size={150} />
+        <Icon name="user-plus" size={100} />
       </View>
 
       <Animated.View
@@ -139,6 +140,7 @@ export default function Register() {
         />
 
         <TextInput
+          secureTextEntry
           style={styles.input}
           placeholder="Senha"
           autoCorrect={false}
@@ -146,18 +148,21 @@ export default function Register() {
         />
 
         <TextInput
+          secureTextEntry
           style={styles.input}
           placeholder="Confirmar senha"
           autoCorrect={false}
           onChangeText={text => setPassword2(text)}
         />
 
-        <TouchableOpacity style={styles.btnSubmit}>
-          <Text onPress={handleSubmit} style={styles.submitText}>Criar</Text>
+        <TouchableOpacity onPress={handleSubmit} style={styles.btnSubmit}>
+          <Text style={styles.submitText}>
+            Criar
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.btnRegister}>
-          <Text style={styles.registerText} onPress={navigationBack}>
+          <Text style={styles.registerText} onPress={navigateToLogin}>
             Já possui conta? Entrar
           </Text>
         </TouchableOpacity>

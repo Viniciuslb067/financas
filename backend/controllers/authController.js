@@ -2,9 +2,31 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 
+const authConfig = require("../config/auth.json");
 const User = require("../models/User");
-
 const router = express.Router();
+
+function generateToken(params = {}) {
+  return jwt.sign(params, authConfig.secret, {
+    expiresIn: 86400,
+  });
+}
+
+router.get("/check", async (req, res) => {
+  const token = req.query.token;
+
+  if (!token) {
+    res.json({ status: 401, error: "Token inexistente" });
+  } else {
+    jwt.verify(token, authConfig.secret, (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ status: 2, error: "Token inválido" });
+      } else {
+        return res.json({ status: 200 });
+      }
+    });
+  }
+});
 
 router.post("/register", async (req, res) => {
   try {
@@ -52,7 +74,7 @@ router.post("/register", async (req, res) => {
 router.post("/authenticate", async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ emai }).select("+password");
+  const user = await User.findOne({ email }).select("+password");
 
   if (!email || !password) {
     return res
@@ -61,11 +83,19 @@ router.post("/authenticate", async (req, res) => {
   }
 
   if (!user)
-  return res.status(200).json({ status: 2, error: "Usuário não encontrado" });
-  
-  if (!(await bcrypt.compare(password, user.password)))
-  return res.status(200).json({ status: 2, error: "Senha incorreta" });
+    return res.status(200).json({ status: 2, error: "Usuário não encontrado" });
 
+  if (!(await bcrypt.compare(password, user.password)))
+    return res.status(200).json({ status: 2, error: "Senha incorreta" });
+
+  user.password = undefined;
+
+  res.cookie("token", generateToken({ id: user.id }), { httpOnly: true });
+  res.status(200).json({
+    status: 1,
+    auth: true,
+    token: generateToken({ id: user.id }),
+  });
 });
 
 module.exports = (app) => app.use("/auth", router);
