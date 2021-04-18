@@ -6,11 +6,13 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  SafeAreaView,
   Animated,
   Keyboard,
+  FlatList,
 } from "react-native";
 
-import Icon from "react-native-vector-icons/FontAwesome5";
+import { Feather } from "@expo/vector-icons";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -21,17 +23,23 @@ import styles from "./styles";
 import api from "../../services/api";
 
 export default function List() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [spents, setSpents] = useState([]);
 
-  const [offset] = useState(new Animated.ValueXY({ x: 0, y: 95 }));
-  const [opacity] = useState(new Animated.Value(0));
-  const [logo] = useState(new Animated.ValueXY({ x: 130, y: 155 }));
   const navigation = useNavigation();
 
   function navigationRegister() {
     navigation.navigate("Register");
   }
+
+  async function loadSpents() {
+    const res = await api.get("/spents");
+    console.log(res.data)
+    setSpents(res.data);
+  }
+
+  useEffect(() => {
+    loadSpents();
+  }, []);
 
   async function handleSubmit() {
     const res = await api.post("/auth/authenticate", { email, password });
@@ -39,9 +47,7 @@ export default function List() {
     const { token } = res.data;
 
     if (res.data.status === 1) {
-      await AsyncStorage.multiSet([
-        ["&user-token", token],
-      ]);
+      await AsyncStorage.multiSet([["&user-token", token]]);
 
       navigateToDashboard();
     } else if (res.data.status === 2) {
@@ -49,66 +55,29 @@ export default function List() {
     }
   }
 
-  useEffect(() => {
-    keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      keyboardDidShow
-    );
-    keyboardDidHideListener = Keyboard.addListener(
-      "keyboardHideShow",
-      keyboardDidHide
-    );
-
-    Animated.parallel([
-      Animated.spring(offset.y, {
-        toValue: 0,
-        speed: 4,
-        bounciness: 20,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
-
-  function keyboardDidShow() {
-    Animated.parallel([
-      Animated.timing(logo.x, {
-        toValue: 55,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(logo.y, {
-        toValue: 65,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }
-
-  function keyboardDidHide() {
-    Animated.parallel([
-      Animated.timing(logo.x, {
-        toValue: 130,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(logo.y, {
-        toValue: 155,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }
-
   return (
-   <>
+    <SafeAreaView>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>
+            Total de <Text style={styles.headerTextBold}> casos</Text>.
+          </Text>
+        </View>
 
-    Hello Wolrd from list 
+        <Text style={styles.title}>Bem-Vindo!</Text>
 
-   </>
+        <FlatList
+          data={spents}
+          keyExtractor = {spents => String (spents._id)}
+          renderItem = {({ item: spents }) => (
+            <View>
+              <Text>{spents._id}</Text>
+            </View>
+          )}
+        >
+
+        </FlatList>
+      </View>
+    </SafeAreaView>
   );
 }

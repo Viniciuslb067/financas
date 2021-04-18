@@ -33,6 +33,10 @@ export default function Login() {
     navigation.navigate("Register");
   }
 
+  function navigationList() {
+    navigation.navigate("List");
+  }
+
   async function handleSubmit() {
     const res = await api.post("/auth/authenticate", { email, password });
 
@@ -43,7 +47,7 @@ export default function Login() {
         ["&user-token", token],
       ]);
 
-      navigateToDashboard();
+      navigationList();
     } else if (res.data.status === 2) {
       alert("" + res.data.error);
     }
