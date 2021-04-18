@@ -6,6 +6,7 @@ const AppStack = createStackNavigator();
 
 import Login from "./screens/Login/index";
 import Register from "./screens/Register/index";
+import List from "./screens/List/index";
 
 export default function routes() {
   return (
